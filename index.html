@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>支部谈话预约系统</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        /* 支部专属红色风格 */
+        body { font-family: -apple-system, "SF Pro SC", "HanHei SC", "PingFang SC", sans-serif; background: #f8f9fa; padding: 20px; }
+        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); max-width: 450px; margin: auto; }
+        h2 { color: #c62828; text-align: center; margin-top: 0; }
+        p.notice { font-size: 0.85em; color: #666; background: #fff5f5; padding: 10px; border-radius: 6px; border-left: 4px solid #c62828; }
+        .input-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; color: #333; }
+        input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
+        button { width: 100%; padding: 14px; background: #c62828; color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background 0.3s; }
+        button:hover { background: #b71c1c; }
+        button:disabled { background: #9e9e9e; cursor: not-allowed; }
+        #status { margin-top: 15px; text-align: center; font-weight: bold; min-height: 24px; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>支部谈话预约</h2>
+    <p class="notice">
+        <b>预约说明：</b><br>
+        1. 谈话定于本周五进行。<br>
+        2. 每个时段批次限额 <b>5人</b>，满员后请选择其他时段。<br>
+        3. 请确保填写的姓名准确无误。
+    </p>
+    
+    <form id="bookingForm">
+        <div class="input-group">
+            <label>姓名</label>
+            <input type="text" name="Name" required placeholder="请输入真实姓名">
+        </div>
+        
+        <div class="input-group">
+            <label>谈话批次 (周五)</label>
+            <select name="TimeSlot" required>
+                <option value="">-- 请选择时间段 --</option>
+                <optgroup label="上午时段">
+                    <option value="09:00-09:30">09:00 - 09:30 (第一批)</option>
+                    <option value="09:30-10:00">09:30 - 10:00 (第二批)</option>
+                    <option value="10:00-10:30">10:00 - 10:30 (第三批)</option>
+                    <option value="10:30-11:00">10:30 - 11:00 (第四批)</option>
+                </optgroup>
+                <optgroup label="下午时段">
+                    <option value="14:00-14:30">14:00 - 14:30 (第五批)</option>
+                    <option value="14:30-15:00">14:30 - 15:00 (第六批)</option>
+                    <option value="15:00-15:30">15:00 - 15:30 (第七批)</option>
+                </optgroup>
+            </select>
+        </div>
+        
+        <button type="submit" id="submitBtn">提交预约信息</button>
+    </form>
+    <div id="status"></div>
+</div>
+
+<script>
+    // 已填入你提供的 Web App URL
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbxAST9O10g37gjXaZdaC-YZiw1LyInrCG4bbmZQujCGEyEE6iTOhgpmNCVuhqpxVms/exec';
+    const form = document.getElementById('bookingForm');
+    const btn = document.getElementById('submitBtn');
+    const status = document.getElementById('status');
+
+    form.addEventListener('submit', e => {
+        e.preventDefault();
+        btn.disabled = true;
+        status.innerText = "正在核对名额并提交...";
+        status.style.color = "#1976d2";
+
+        fetch(scriptURL, { method: 'POST', body: new FormData(form)})
+        .then(response => response.json())
+        .then(data => {
+            if(data.result === 'success') {
+                status.innerText = "恭喜，预约成功！";
+                status.style.color = "#2e7d32";
+                form.reset();
+            } else {
+                // 如果后端返回错误（如人数已满）
+                status.innerText = "提交失败: " + data.error;
+                status.style.color = "#d32f2f";
+            }
+            btn.disabled = false;
+        })
+        .catch(error => {
+            status.innerText = "网络异常，请检查网络后重试";
+            status.style.color = "#d32f2f";
+            btn.disabled = false;
+            console.error('Error!', error.message);
+        });
+    });
+</script>
+
+</body>
+</html>
